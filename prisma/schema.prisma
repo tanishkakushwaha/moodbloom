@@ -1,0 +1,59 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+datasource db {
+  provider = "postgresql"
+}
+model User {
+  id String @id @default(cuid())
+  name String
+  email String @unique
+  passwordHash String?
+  image String?
+  theme String @default("system")
+  sessionVersion Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  moods Mood[]
+  entries DiaryEntry[]
+  favorites FavoriteQuote[]
+}
+model Mood {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date String @db.VarChar(10)
+  mood String
+  note String @default("") @db.VarChar(500)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@unique([userId, date])
+  @@index([userId, date])
+}
+model DiaryEntry {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title String @db.VarChar(150)
+  content String @db.Text
+  date String @db.VarChar(10)
+  mood String?
+  tags String[] @default([])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId, date])
+}
+model FavoriteQuote {
+  id String @id @default(cuid())
+  userId String
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  quoteId String
+  createdAt DateTime @default(now())
+  @@unique([userId, quoteId])
+}
+model RateLimit {
+  key String @id
+  hits Int @default(1)
+  resetAt DateTime
+}
